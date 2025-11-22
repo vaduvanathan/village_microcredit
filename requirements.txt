@@ -4,3 +4,4 @@ pydeck
 google-cloud-aiplatform
 beautifulsoup4
 requests
+plotly

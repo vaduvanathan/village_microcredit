@@ -1,8 +1,26 @@
 import random
+import pandas as pd
+import os
 
-def fetch_village_data(district: str, block: str, panchayat: str) -> dict:
+# --- Data Loading ---
+def load_scheme_rankings():
+    """Loads the district scheme ranking data from the CSV file."""
+    # Correctly construct the path relative to this file's location
+    script_dir = os.path.dirname(__file__) 
+    file_path = os.path.join(script_dir, 'district_scheme_ranking.csv')
+    try:
+        df = pd.read_csv(file_path)
+        df.set_index('district', inplace=True)
+        return df.to_dict('index')
+    except FileNotFoundError:
+        # Return a default ranking if the file is missing
+        return {}
+
+SCHEME_RANKINGS = load_scheme_rankings()
+
+def fetch_village_data(district: str, block: str, panchayat: str, scheme_inputs: dict) -> dict:
     """
-    Mocks fetching data for a given village panchayat.
+    Mocks fetching data for a given village panchayat and calculates risk based on scheme inputs.
     In a real scenario, this would involve web scraping, database queries,
     and API calls.
     """
@@ -29,16 +47,34 @@ def fetch_village_data(district: str, block: str, panchayat: str) -> dict:
         yield_anomaly = -10
         price_trend = "down"
 
+    # Get the district's specific rankings
+    district_ranks = SCHEME_RANKINGS.get(district, {
+        'kalaignar_magalir_urimai_rank': 19, # Use average rank as default
+        'old_age_pension_rank': 19,
+        'mgnrega_rank': 19,
+        'pongal_gift_rank': 19
+    })
+
     return {
         'panchayat': panchayat,
-        'active_job_cards': active_cards,
-        'avg_wage': avg_wage,
-        'welfare_coverage': {
-            'pension': pension_coverage,
-            'magalir_urimai': magalir_coverage
-        },
-        'crop_risk': {
-            'yield_anomaly': yield_anomaly,
-            'price_trend': price_trend
-        }
+        'district': district,
+        'scheme_inputs': scheme_inputs,
+        'district_ranks': district_ranks
     }
+
+def get_district_ranks(district: str) -> dict:
+    """
+    Returns the scheme rankings for a specific district.
+    """
+    return SCHEME_RANKINGS.get(district, {
+        'kalaignar_magalir_urimai_rank': 19,
+        'old_age_pension_rank': 19,
+        'mgnrega_rank': 19,
+        'pongal_gift_rank': 19
+    })
+
+def get_all_district_ranks() -> dict:
+    """
+    Returns the rankings for all districts.
+    """
+    return SCHEME_RANKINGS
