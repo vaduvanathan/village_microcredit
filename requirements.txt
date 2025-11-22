@@ -1,0 +1,6 @@
+streamlit
+pandas
+pydeck
+google-cloud-aiplatform
+beautifulsoup4
+requests
